@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Machine {
+  id              String   @id @default("VMC-01")
+  name            String   @default("VMC-01")
+  type            String   @default("3-Axis Vertical Machining Center")
+  status          String   @default("ONLINE") // ONLINE, RUNNING, STOPPED, ALARM
+  powerStatus     String   @default("ON")     // ON, OFF
+  operationName   String   @default("Pocket Milling")
+  material        String   @default("Aluminium 6061-T6")
+  quantity        Int      @default(1)
+  drawingNumber   String   @default("PRF-VMC-001")
+  drawingRevision String   @default("REV-B")
+  cncProgram      String   @default("PRF_VMC_POCKET_001")
+  programRevision String   @default("REV-B")
+  fixture         String   @default("Precision Vice Fixture – FV-100")
+  workOffset      String   @default("G54")
+  dimensions      String   @default("100 mm × 80 mm × 25 mm")
+  orientation     String   @default("Datum A facing upward, X0/Y0 at lower-left corner of the workpiece.")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model WorkflowState {
+  id                 String    @id @default("CURRENT")
+  currentStage       String    @default("STAGE_1_CHECKS") // POWER_ON, STAGE_1_CHECKS, STAGE_2_TOOLS, STAGE_3_WORKPIECE, STAGE_4_READY, STAGE_5_OPERATION
+  activeItemIndex    Int       @default(0)
+  isReady            Boolean   @default(false)
+  operationStatus    String    @default("READY") // READY, RUNNING, STOPPED
+  operationStartedAt DateTime?
+  operationStoppedAt DateTime?
+  elapsedSeconds     Int       @default(0)
+  feedRateOverride   Int       @default(100) // Percentage
+  spindleRpm         Int       @default(4500)
+  coolantActive      Boolean   @default(true)
+  updatedAt          DateTime  @updatedAt
+}
+
+model MachineCheck {
+  id          Int       @id
+  orderIndex  Int
+  title       String
+  description String
+  status      String    @default("PENDING") // PENDING, CONFIRMED
+  confirmedAt DateTime?
+  confirmedBy String?   @default("operator")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Tool {
+  id          Int       @id
+  toolNumber  String    @unique // T01, T02, T03, T04
+  type        String
+  description String
+  purpose     String
+  instruction String
+  required    Boolean   @default(true)
+  status      String    @default("PENDING") // PENDING, CONFIRMED
+  confirmedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model WorkpieceSetup {
+  id          Int       @id
+  orderIndex  Int
+  title       String
+  instruction String
+  detail      String?
+  status      String    @default("PENDING") // PENDING, CONFIRMED
+  confirmedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model OperationSession {
+  id             String    @id @default(cuid())
+  operationName  String    @default("Pocket Milling")
+  programName    String    @default("PRF_VMC_POCKET_001")
+  revision       String    @default("REV-B")
+  status         String    @default("RUNNING") // RUNNING, STOPPED, COMPLETED
+  startedAt      DateTime  @default(now())
+  stoppedAt      DateTime?
+  durationSeconds Int      @default(0)
+  operator       String    @default("operator")
+}
+
+model OperationLog {
+  id        String   @id @default(cuid())
+  level     String   @default("INFO") // INFO, WARN, SUCCESS, ALERT
+  stage     String
+  message   String
+  metadata  String?
+  createdAt DateTime @default(now())
+}
