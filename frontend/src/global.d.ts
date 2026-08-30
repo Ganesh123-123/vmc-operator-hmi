@@ -2,4 +2,14 @@
 /// <reference types="react" />
 /// <reference types="react-dom" />
 
+interface ImportMetaEnv {
+  readonly VITE_API_BASE_URL?: string;
+  [key: string]: any;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 declare module 'lucide-react';
+declare module '*.css';
