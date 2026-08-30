@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: vmc-operator-hmi
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm run render-build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./dev.db
+      - key: PORT
+        value: 10000

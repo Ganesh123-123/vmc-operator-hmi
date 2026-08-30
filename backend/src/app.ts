@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 import { apiRouter } from './routes';
 import { errorHandler } from './middleware/errorHandler';
 
@@ -27,16 +29,25 @@ app.use((req, _res, next) => {
 // API Routes
 app.use('/api', apiRouter);
 
-// Fallback 404 handler for API routes
-app.use('/api/*', (_req, res) => {
-  res.status(404).json({
-    success: false,
-    error: {
-      message: 'API endpoint not found.',
-      statusCode: 404
+// Static frontend serving if dist exists
+const possibleDistPaths = [
+  path.resolve(__dirname, '../../frontend/dist'),
+  path.resolve(process.cwd(), 'frontend/dist'),
+  path.resolve(process.cwd(), '../frontend/dist'),
+  path.resolve(__dirname, '../frontend/dist')
+];
+
+const frontendDistPath = possibleDistPaths.find(p => fs.existsSync(p));
+
+if (frontendDistPath) {
+  app.use(express.static(frontendDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api')) {
+      return next();
     }
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
   });
-});
+}
 
 // Global Error Handler
 app.use(errorHandler);
