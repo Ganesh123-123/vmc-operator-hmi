@@ -46,7 +46,7 @@ export function useWorkflow() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
 
-  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = useCallback((message: string, type: ToastState['type'] = 'info') => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -97,7 +97,7 @@ export function useWorkflow() {
 
   // Polling interval when in RUNNING state or viewing Dashboard
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (operator && (workflow?.operationStatus === 'RUNNING' || activeView === 'dashboard')) {
       interval = setInterval(async () => {
         try {
@@ -153,8 +153,8 @@ export function useWorkflow() {
     setActionLoading(true);
     try {
       const res = await api.confirmMachineCheck(id, operator?.username || 'operator');
-      setMachineChecks((prev) =>
-        prev.map((item) => (item.id === id ? res.check : item))
+      setMachineChecks((prev: MachineCheckItem[]) =>
+        prev.map((item: MachineCheckItem) => (item.id === id ? res.check : item))
       );
       showToast(`Machine check confirmed.`, 'success');
       await refreshAll(true);
@@ -170,8 +170,8 @@ export function useWorkflow() {
     setActionLoading(true);
     try {
       const res = await api.confirmTool(id);
-      setTools((prev) =>
-        prev.map((item) => (item.id === id ? res.tool : item))
+      setTools((prev: ToolItem[]) =>
+        prev.map((item: ToolItem) => (item.id === id ? res.tool : item))
       );
       showToast(`Tool ${res.tool.toolNumber} confirmed installed.`, 'success');
       await refreshAll(true);
@@ -187,8 +187,8 @@ export function useWorkflow() {
     setActionLoading(true);
     try {
       const res = await api.confirmWorkpieceItem(id);
-      setWorkpieceItems((prev) =>
-        prev.map((item) => (item.id === id ? res.workpieceItem : item))
+      setWorkpieceItems((prev: WorkpieceItem[]) =>
+        prev.map((item: WorkpieceItem) => (item.id === id ? res.workpieceItem : item))
       );
       showToast(`Workpiece setup step #${id} confirmed.`, 'success');
       await refreshAll(true);
